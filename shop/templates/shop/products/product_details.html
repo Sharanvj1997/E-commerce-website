@@ -1,0 +1,63 @@
+{% extends 'shop/layouts/main.html' %}
+{% block title %}
+ShopKart | Online Shopping
+{% endblock title %}
+
+{% block content %}
+<section class="bg-light py-4 my-5" style="min-height:600px;">
+  <div class="container">
+    <div class="row">
+      <div class="col-12">
+        
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item active"><a href="{% url 'collections_view' products.category.name %}">Collections</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{products}}</li>
+          </ol>
+        </nav>
+
+        <!-- Product Image and Details in a Single Row -->
+        <div class="row">
+          <!-- Product Image -->
+          <div class="col-md-4 my-3 pic-box">
+            {% if products.trending%}
+            <div class="hot">hot</div>
+            {% endif %}
+            <img src="{{ products.product_image.url }}" class="card-img-top img-fluid rounded shadow" 
+                 alt="{{ products.name }}" style="width: 100%; height: 350px; object-fit: cover;">
+          </div>
+
+          <!-- Product Details -->
+          <div class="col-md-8 my-3">
+            <h3 class="text-success">{{ products.name | upper }}</h3>
+            <p class="text-muted">Vendor: <strong>{{ products.vendor }}</strong></p>
+            <p class="lead">{{ products.description }}</p>
+            
+            <h5 class="text-danger">Current Price: <s>Rs. {{ products.original_price }}</s></h5>
+            <h4 class="text-primary">Offer Price: Rs. {{ products.selling_price }}</h4>
+
+            <input type="hidden" value="{{ products.name }}" id="pname">
+            <input type="hidden" value="{{ products.original_price }}" id="originalPrice">
+
+            <div class="my-3">
+              {% if products.quantity > 0 %}
+                <input type="hidden" value="{{ products.id }}" id="pid">
+                <div class="input-group mb-3" style="width:150px">
+                  <button class="btn btn-outline-success" id="btnMinus"><i class="fa fa-minus"></i></button>
+                  <input type="text" name="qty" id="txtQty" value="1" class="form-control text-center">
+                  <button class="btn btn-outline-success" id="btnPlus"><i class="fa fa-plus"></i></button>
+                </div>
+                <button class="btn btn-primary" id="btnCart"><i class="fa fa-shopping-cart"></i> Add to Cart</button>
+              {% else %}
+                <button class="btn btn-secondary" disabled><i class="fa fa-minus"></i> Out of Stock</button>
+              {% endif %}
+              <button class="btn btn-danger ms-2" id="btnFav"><i class="fa fa-heart"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock content %}
