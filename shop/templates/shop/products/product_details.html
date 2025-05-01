@@ -1,6 +1,6 @@
 {% extends 'shop/layouts/main.html' %}
 {% block title %}
-ShopKart | Online Shopping
+ShopKart | Product Details
 {% endblock title %}
 
 {% block content %}
@@ -8,41 +8,43 @@ ShopKart | Online Shopping
   <div class="container">
     <div class="row">
       <div class="col-12">
-        
+
+        <!-- Breadcrumb -->
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
             <li class="breadcrumb-item active"><a href="{% url 'collections_view' products.category.name %}">Collections</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{products}}</li>
+            <li class="breadcrumb-item active" aria-current="page">{{ products.name }}</li>
           </ol>
         </nav>
 
-        <!-- Product Image and Details in a Single Row -->
+        <!-- Product Section -->
         <div class="row">
-          <!-- Product Image -->
+          <!-- Image -->
           <div class="col-md-4 my-3 pic-box">
-            {% if products.trending%}
-            <div class="hot">hot</div>
+            {% if products.trending %}
+              <div class="hot">hot</div>
             {% endif %}
-            <img src="{{ products.product_image.url }}" class="card-img-top img-fluid rounded shadow" 
+            <img src="{{ products.product_image.url }}" class="card-img-top img-fluid rounded shadow"
                  alt="{{ products.name }}" style="width: 100%; height: 350px; object-fit: cover;">
           </div>
 
-          <!-- Product Details -->
+          <!-- Details -->
           <div class="col-md-8 my-3">
-            <h3 class="text-success">{{ products.name | upper }}</h3>
+            <h3 class="text-success">{{ products.name|upper }}</h3>
             <p class="text-muted">Vendor: <strong>{{ products.vendor }}</strong></p>
             <p class="lead">{{ products.description }}</p>
-            
+
             <h5 class="text-danger">Current Price: <s>Rs. {{ products.original_price }}</s></h5>
             <h4 class="text-primary">Offer Price: Rs. {{ products.selling_price }}</h4>
 
             <input type="hidden" value="{{ products.name }}" id="pname">
             <input type="hidden" value="{{ products.original_price }}" id="originalPrice">
+            <input type="hidden" value="{{ products.id }}" id="pid">
 
+            <!-- Quantity and Buttons -->
             <div class="my-3">
               {% if products.quantity > 0 %}
-                <input type="hidden" value="{{ products.id }}" id="pid">
                 <div class="input-group mb-3" style="width:150px">
                   <button class="btn btn-outline-success" id="btnMinus"><i class="fa fa-minus"></i></button>
                   <input type="text" name="qty" id="txtQty" value="1" class="form-control text-center">
@@ -53,6 +55,7 @@ ShopKart | Online Shopping
                 <button class="btn btn-secondary" disabled><i class="fa fa-minus"></i> Out of Stock</button>
               {% endif %}
               <button class="btn btn-danger ms-2" id="btnFav"><i class="fa fa-heart"></i></button>
+
             </div>
           </div>
         </div>
@@ -60,4 +63,107 @@ ShopKart | Online Shopping
     </div>
   </div>
 </section>
+
+<!-- SweetAlert & Cart Script -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const btnPlus = document.getElementById('btnPlus');
+    const btnMinus = document.getElementById('btnMinus');
+    const txtQty = document.getElementById('txtQty');
+    const pid = document.getElementById('pid');
+    const btnCart = document.getElementById('btnCart');
+    const btnFav = document.getElementById('btnFav');
+
+    btnPlus.addEventListener('click', () => {
+      let qty = parseInt(txtQty.value, 10);
+      qty = isNaN(qty) ? 0 : qty;
+      if (qty < 10) txtQty.value = ++qty;
+    });
+
+    btnMinus.addEventListener('click', () => {
+      let qty = parseInt(txtQty.value, 10);
+      qty = isNaN(qty) ? 0 : qty;
+      if (qty > 1) txtQty.value = --qty;
+    });
+
+    btnFav.addEventListener('click', () => {
+  fetch('/fav_page', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-CSRFToken': '{{ csrf_token }}'
+    },
+    body: JSON.stringify({
+      pid: pid.value
+    })
+  })
+  .then(response => {
+    if (response.status === 401) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Please login to add to favourites',
+        timer: 2000
+      });
+      return;
+    }
+    return response.json();
+  })
+  .then(data => {
+    if (data) {
+      Swal.fire({
+        icon: data.status === 'success' ? 'success' : 'error',
+        title: data.message,
+        timer: 3000
+      });
+    }
+  })
+  .catch(error => {
+    Swal.fire({
+      icon: 'error',
+      title: 'Something went wrong!',
+      text: error,
+    });
+  });
+});
+
+
+    btnCart.addEventListener('click', () => {
+      const qty = parseInt(txtQty.value, 10);
+      if (qty > 0) {
+        fetch('/addtocart', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({
+            product_qty: qty,
+            pid: pid.value
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          Swal.fire({
+            icon: data.status === 'success' ? 'success' : 'error',
+            title: data.message,
+            timer: 3000
+          });
+        });
+      } else {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Please enter a valid quantity',
+          timer: 2000
+        });
+      }
+    });
+  });
+</script>
 {% endblock content %}

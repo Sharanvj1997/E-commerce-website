@@ -1,0 +1,110 @@
+{% extends 'shop/layouts/main.html' %}
+
+{% block title %}Favourites{% endblock title %}
+
+{% block content %}
+<section class="bg-light py-4 my-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-12 mb-3">
+        <h4 class="mb-3"><i class="fa fa-heart"></i> Your Favourites</h4>
+        <hr style="border-color:#b8bfc2;">
+      </div>
+
+      {% if fav %}
+        <div class="col-12">
+          <div class="row">
+            {% for item in fav %}
+              <div class="col-md-3 mb-4">
+                <div class="card">
+                  <img src="{{ item.product.product_image.url }}" class="card-img-top" alt="{{ item.product.name }}">
+                  <div class="card-body">
+                    <h5 class="card-title">{{ item.product.name }}</h5>
+                    <p class="card-text">Rs. {{ item.product.selling_price }}</p>
+                    
+                    <button class="btn btn-danger mt-2" id="removeFav" data-product-id="{{ item.product.id }}">Remove</button>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <div class="col-12">
+          <p>You have no favourites yet.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<script>
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const removeFavBtns = document.querySelectorAll('#removeFav');
+
+    removeFavBtns.forEach(button => {
+      button.addEventListener('click', function () {
+        const productId = this.getAttribute('data-product-id');
+        
+        // Show a confirmation dialog before removing the item
+        Swal.fire({
+          title: 'Are you sure?',
+          text: 'Do you really want to remove this product from your favourites?',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Yes, remove it!',
+          cancelButtonText: 'No, keep it',
+          reverseButtons: true
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Proceed with removing the product
+            fetch('/remove_from_fav/', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+              },
+              body: JSON.stringify({ product_id: productId })
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.status === 'success') {
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Removed from favourites',
+                  timer: 2000
+                }).then(() => {
+                  location.reload();  // Reload page to update the list
+                });
+              } else {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Something went wrong!',
+                  text: data.message
+                });
+              }
+            })
+            .catch(error => {
+              Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message
+              });
+            });
+          } else {
+            // User clicked "No, keep it"
+            Swal.fire({
+              icon: 'info',
+              title: 'Product is still in your favourites',
+              timer: 1500
+            });
+          }
+        });
+      });
+    });
+  });
+</script>
+
+
+{% endblock content %}

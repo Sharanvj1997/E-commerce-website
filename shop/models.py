@@ -52,3 +52,21 @@ class Product(models.Model):
             max_size = (500, 500)  # Resize to a max of 500x500 pixels
             img.thumbnail(max_size)  # Maintain aspect ratio
             img.save(self.product_image.path)  # Overwrite the original image
+
+
+class Cart(models.Model):
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    product = models.ForeignKey(Product,on_delete=models.CASCADE)
+    product_qty = models.IntegerField(null=False,blank=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def total_cost(self):
+        return self.product_qty * self.product.selling_price
+
+
+class Favourite(models.Model):
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    product = models.ForeignKey(Product,on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+

@@ -1,0 +1,39 @@
+{% extends 'shop/layouts/main.html' %}
+{% block title %}Login{% endblock title %}
+
+{% block content %}
+<div class="container" style="margin-top: 70px;">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <h1>Login</h1>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" name="username" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" name="password" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- SweetAlert Success Message -->
+{% if messages %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    {% for message in messages %}
+    Swal.fire({
+        icon: 'success',
+        title: '{{ message }}',
+        showConfirmButton: true,
+        timer: 3000
+    });
+    {% endfor %}
+</script>
+{% endif %}
+{% endblock content %}

@@ -1,0 +1,75 @@
+{% extends 'shop/layouts/main.html' %}
+
+{% block title %}Cart{% endblock title %}
+
+{% block content %}
+<section class="bg-light py-4 my-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-12 mb-3">
+        <h4 class="mb-3"><i class="fa fa-shopping-cart"></i> Your Shopping Cart</h4>
+        <hr style="border-color:#b8bfc2;">
+      </div>
+
+      {% if cart %}
+      <div class="col-12">
+        <div class="table-responsive">
+          <table class="table table-striped table-hover table-bordered text-center align-middle shadow">
+            <thead class="table-dark">
+              <tr>
+                <th>Image</th>
+                <th>Product Name</th>
+                <th>Unit Price</th>
+                <th>Quantity</th>
+                <th>Amount</th>
+                <th>Remove</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in cart %}
+              <tr>
+                <td>
+                  <img src="{{ item.product.product_image.url }}" alt="{{ item.product.name }}" class="img-thumbnail" style="height: 75px;">
+                </td>
+                <td class="fw-semibold">{{ item.product.name }}</td>
+                <td>₹{{ item.product.selling_price }}</td>
+                <td>{{ item.product_qty }}</td>
+                <td class="amt">₹{{ item.total_cost }}</td>
+                <td>
+                  <a href="{% url 'remove_cart' item.id %}" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure you want to remove this item?')">
+                    <i class="fa fa-trash"></i> Remove
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+              <tr class="table-secondary">
+                <td colspan="4" class="text-end fw-bold">Total Amount:</td>
+                <td colspan="2" class="fw-bold" id="net">₹0</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% else %}
+      <div class="col-12">
+        <div class="alert alert-info text-center" role="alert">
+          Your cart is empty.
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const nodes = document.querySelectorAll('.amt');
+    let total = 0;
+    nodes.forEach(node => {
+      const val = node.textContent.replace(/[₹,]/g, '').trim();
+      total += parseFloat(val);
+    });
+    document.getElementById('net').innerText = "₹" + total.toFixed(2);
+  });
+</script>
+{% endblock content %}
